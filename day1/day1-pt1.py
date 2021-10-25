@@ -8,16 +8,16 @@ def main():
 
     for line in inputFile.readlines():
         line = int(line)
-        divideThree = line / 3
+        divideThree = int(line / 3)
         minusTwo = (divideThree - 2)
         
         total = total + minusTwo
 
-        print 'Line:' + str(line)
-        print 'Divided by 3: ' + str(divideThree)
-        print 'Minus 2:' + str(minusTwo)
+        print('Line: ' + str(line))
+        print('Divided by 3: ' + str(divideThree))
+        print('Minus 2: ' + str(minusTwo))
 
-    print total
+    print(total)
 main()
 
 
