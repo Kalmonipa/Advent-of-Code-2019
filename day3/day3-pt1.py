@@ -1,4 +1,4 @@
-with open('input-test','r') as input_file:
+with open('input','r') as input_file:
 
     wire_paths = []
     intersections = []
@@ -39,10 +39,11 @@ with open('input-test','r') as input_file:
                 orig_x = curr_x
             elif direction == "L":
                 #print(f"Moving left {movement} spaces")
-                while curr_x > (orig_x + movement):
+                while curr_x > (orig_x - movement):
                     movements.append([curr_x, curr_y])
                     curr_x -= 1
                 orig_x = curr_x
+            #print(movements)
 
         wire_paths.append(movements)
 
@@ -71,8 +72,28 @@ with open('input-test','r') as input_file:
                 path_two_ind += 1
         path_one_ind += 1
 
-
-    closest_int = 1000000
-
-
     print(intersections)
+
+
+    closest_int_dist = 1000000
+    closest_int = [0,0]
+
+    start_x = 0
+    start_y = 0
+    for point in intersections:
+        int_x = point[0]
+        int_y = point[1]
+
+        if int_x < 0:
+            int_x = int_x * -1
+        if int_y < 0:
+            int_y = int_y * -1
+
+        distance = int_x + int_y
+        print(f"Point {point} is {distance} away from origin. Current closest is {closest_int_dist}")
+
+        if distance < closest_int_dist:
+            closest_int_dist = distance
+            closest_int = point
+
+    print(f"Point {closest_int} is {closest_int_dist} away from origin")
