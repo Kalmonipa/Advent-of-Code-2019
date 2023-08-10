@@ -10,17 +10,15 @@ import (
 )
 
 var (
-	fileName         = "../short-input.txt"
-	firstWireMapping []Coordinate
-	currPos          = Coordinate{X: 0, Y: 0}
-	crossoverPoints  []Coordinate
+	fileName = "../short-input.txt"
 )
 
 type Coordinate struct {
 	X, Y int
 }
 
-func mapFirstWire(instrLine string) {
+// Creates a slice of the first wires coordinates at each step
+func mapFirstWire(instrLine string, firstWire []Coordinate, currPos Coordinate) []Coordinate {
 
 	instr := strings.Split(instrLine, ",")
 
@@ -35,47 +33,43 @@ func mapFirstWire(instrLine string) {
 			log.Fatal(err)
 		}
 
-		// fmt.Println(string(dir))
-		// fmt.Println(steps)
+		currPos, firstWire = moveFirstWire(steps, dir, firstWire, currPos)
 
-		switch dir {
-		case "U":
-			fmt.Printf("Moving up by %d steps\n", steps)
-			for count := 0; count < steps; count++ {
-				newPosY := currPos.Y + 1
-				firstWireMapping = append(firstWireMapping, Coordinate{X: currPos.X, Y: newPosY})
-				currPos = Coordinate{X: currPos.X, Y: newPosY}
-			}
-			fmt.Printf("New position is X: %d, Y: %d\n", currPos.X, currPos.Y)
-		case "D":
-			fmt.Printf("Moving down by %d steps\n", steps)
-			for count := 0; count < steps; count++ {
-				newPosY := currPos.Y - 1
-				firstWireMapping = append(firstWireMapping, Coordinate{X: currPos.X, Y: newPosY})
-				currPos = Coordinate{X: currPos.X, Y: newPosY}
-			}
-			fmt.Printf("New position is X: %d, Y: %d\n", currPos.X, currPos.Y)
-		case "R":
-			fmt.Printf("Moving right by %d steps\n", steps)
-			for count := 0; count < steps; count++ {
-				newPosX := currPos.X + 1
-				firstWireMapping = append(firstWireMapping, Coordinate{X: newPosX, Y: currPos.Y})
-				currPos = Coordinate{X: newPosX, Y: currPos.Y}
-			}
-			fmt.Printf("New position is X: %d, Y: %d\n", currPos.X, currPos.Y)
-		case "L":
-			fmt.Printf("Moving left by %d steps\n", steps)
-			for count := 0; count < steps; count++ {
-				newPosX := currPos.X - 1
-				firstWireMapping = append(firstWireMapping, Coordinate{X: newPosX, Y: currPos.Y})
-				currPos = Coordinate{X: newPosX, Y: currPos.Y}
-			}
-			fmt.Printf("New position is X: %d, Y: %d\n", currPos.X, currPos.Y)
-		}
 	}
+
+	return firstWire
 }
 
-func mapSecondWire(instrLine string) {
+func moveFirstWire(steps int, dir string, firstWire []Coordinate, currPos Coordinate) (Coordinate, []Coordinate) {
+	fmt.Printf("Moving %s by %d steps\n", dir, steps)
+
+	dx, dy := 0, 0
+	nextPos := Coordinate{X: currPos.X, Y: currPos.Y}
+
+	if dir == "U" {
+		dy = 1
+	} else if dir == "D" {
+		dy = -1
+	} else if dir == "L" {
+		dx = -1
+	} else if dir == "R" {
+		dx = 1
+	}
+	for count := 0; count < steps; count++ {
+		nextPos = Coordinate{X: currPos.X + dx, Y: currPos.Y + dy}
+		firstWire = append(firstWire, currPos)
+		currPos = nextPos
+	}
+
+	fmt.Printf("New position is X: %d, Y: %d\n", nextPos.X, nextPos.Y)
+
+	return currPos, firstWire
+}
+
+// Gets the coords of the second wire as it makes its movements
+// Iterates through the first wires coords to see if there is a crossover point
+// and appends that to a slice if it is. Ignores it if not a crossover
+func mapSecondWire(instrLine string, currPos Coordinate, crossoverPoints []Coordinate, firstWire []Coordinate) []Coordinate {
 
 	currPos = Coordinate{X: 0, Y: 0}
 
@@ -95,7 +89,7 @@ func mapSecondWire(instrLine string) {
 			for count := 0; count < steps; count++ {
 				newPosY := currPos.Y + 1
 				newCoord := Coordinate{X: currPos.X, Y: newPosY}
-				if contains(firstWireMapping, newCoord) {
+				if contains(firstWire, newCoord) {
 					crossoverPoints = append(crossoverPoints, newCoord)
 				}
 				currPos = Coordinate{X: currPos.X, Y: newPosY}
@@ -106,7 +100,7 @@ func mapSecondWire(instrLine string) {
 			for count := 0; count < steps; count++ {
 				newPosY := currPos.Y - 1
 				newCoord := Coordinate{X: currPos.X, Y: newPosY}
-				if contains(firstWireMapping, newCoord) {
+				if contains(firstWire, newCoord) {
 					crossoverPoints = append(crossoverPoints, newCoord)
 				}
 				currPos = Coordinate{X: currPos.X, Y: newPosY}
@@ -117,7 +111,7 @@ func mapSecondWire(instrLine string) {
 			for count := 0; count < steps; count++ {
 				newPosX := currPos.X + 1
 				newCoord := Coordinate{X: newPosX, Y: currPos.Y}
-				if contains(firstWireMapping, newCoord) {
+				if contains(firstWire, newCoord) {
 					crossoverPoints = append(crossoverPoints, newCoord)
 				}
 				currPos = Coordinate{X: newPosX, Y: currPos.Y}
@@ -128,7 +122,7 @@ func mapSecondWire(instrLine string) {
 			for count := 0; count < steps; count++ {
 				newPosX := currPos.X - 1
 				newCoord := Coordinate{X: newPosX, Y: currPos.Y}
-				if contains(firstWireMapping, newCoord) {
+				if contains(firstWire, newCoord) {
 					crossoverPoints = append(crossoverPoints, newCoord)
 				}
 				currPos = Coordinate{X: newPosX, Y: currPos.Y}
@@ -136,6 +130,8 @@ func mapSecondWire(instrLine string) {
 			fmt.Printf("New position is X: %d, Y: %d\n", currPos.X, currPos.Y)
 		}
 	}
+
+	return crossoverPoints
 }
 
 func getWireInstructions(filename string) (string, string) {
@@ -167,7 +163,7 @@ func getWireInstructions(filename string) (string, string) {
 	return firstLine, secondLine
 }
 
-func calculateClosestCrossover() int {
+func calculateClosestCrossover(crossoverPoints []Coordinate) int {
 	closestDistance := 1000000
 
 	for _, c := range crossoverPoints {
@@ -175,6 +171,8 @@ func calculateClosestCrossover() int {
 		absY := absInt(c.Y)
 
 		distance := absX + absY
+
+		fmt.Printf("Distance is %d\n", distance)
 
 		if closestDistance > distance {
 			closestDistance = distance
@@ -201,19 +199,24 @@ func absInt(n int) int {
 }
 
 func main() {
+
+	firstWireMapping := []Coordinate{}
+	crossoverPoints := []Coordinate{}
+	startPos := Coordinate{X: 0, Y: 0}
+
 	firstLine, secondLine := getWireInstructions(fileName)
 
 	// fmt.Println(firstLine)
 	// fmt.Println(secondLine)
 
 	fmt.Println("Mapping first line")
-	mapFirstWire(firstLine)
+	firstWire := mapFirstWire(firstLine, firstWireMapping, startPos)
 	fmt.Println("---------------------------\nMapping second line")
-	mapSecondWire(secondLine)
+	crossoverPoints = mapSecondWire(secondLine, startPos, crossoverPoints, firstWire)
 
 	fmt.Print(crossoverPoints)
 
-	closestDistance := calculateClosestCrossover()
+	closestDistance := calculateClosestCrossover(crossoverPoints)
 
 	fmt.Print(closestDistance)
 
